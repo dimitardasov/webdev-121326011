@@ -2,12 +2,15 @@
   "name": "webdev-121326011",
   "version": "1.0.0",
   "description": "This repository is your workspace for the whole course: Exercise 1 in `mcp-server/`, and your project (Exercises 2–5) in the rest of it. Everything runs in your browser through GitHub Codespaces, so nothing needs to be installed on your laptop.",
-  "main": "index.js",
+  "main": "src/server.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "test": "node mcp-server/check.mjs -- npm run --silent mcp",
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "db:start": "docker start club-db 2>/dev/null || docker run -d --name club-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=club -p 5432:5432 postgres:16",
+    "db:setup": "node --env-file-if-exists=.env src/db/setup.js",
+    "test": "node --test && node mcp-server/check.mjs -- npm run --silent mcp",
     "mcp": "node mcp-server/server.js"
   },
   "repository": {
@@ -20,5 +23,13 @@
   "bugs": {
     "url": "https://github.com/dimitardasov/webdev-121326011/issues"
   },
-  "homepage": "https://github.com/dimitardasov/webdev-121326011#readme"
+  "homepage": "https://github.com/dimitardasov/webdev-121326011#readme",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "pg": "^8.13.1"
+  }
 }

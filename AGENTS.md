@@ -3,22 +3,36 @@
 Read this file at the start of every session. Keep it short and correct; update it when the project changes.
 
 ## Project
-<!-- One or two sentences: what the app does and for whom. Link SPEC.md. -->
-See `SPEC.md` for goals, non-goals and acceptance criteria.
+Club Events for the Informatics Club: members sign in, see upcoming events and sign up for those with free places; organizers create events and see who signed up.
+See `SPEC.md` for goals, non-goals and acceptance criteria. Build only what a criterion asks for, and nothing listed under Non-goals.
 
 ## Commands
 <!-- How to install, run, test. Keep these exact and working. -->
-- Install: 
-- Run: 
-- Test: 
-- Coverage: 
-- MCP server: 
+- Install: `npm install && cp -n .env.example .env`
+- Run: `npm run db:start && npm run db:setup && npm start`, then open the forwarded port 3000
+- Test: `npm test`
+- Coverage: `node --test --experimental-test-coverage --test-coverage-include='src/**' --test-coverage-exclude='test/**'`
+- MCP server: `npm run --silent mcp`
+- Seeded accounts (local only): `member@club.test` / `member-pass`, `organizer@club.test` / `organizer-pass`
 
 ## Conventions
 <!-- Folder layout, naming, where business rules live, how errors are returned to the client. -->
+- CommonJS (`require`), Node 22, no build step.
+- `src/routes/` HTTP route handlers, `src/services/` rules, `src/data/` SQL, `src/db/` pool, schema and seed, `src/lib/` helpers with no rules (password hashing).
+- `views/` holds the HTML pages, served by a route so that a page can require sign-in; `public/` holds only CSS and browser JavaScript.
+- A service is created by a factory that receives its data modules (`createEventService({ events })`), so tests pass fakes and never need a database.
+- A service refuses an action by throwing `ServiceError(status, message)`; the error handler in `src/app.js` turns it into `{ "error": message }` with that status. Any other error becomes 500 with a generic message, and the details go only to the server log.
+- SQL always uses parameters (`$1`), never string concatenation.
+- Database columns are `snake_case`; JavaScript objects returned by the data layer are `camelCase`.
+- Tests live in `test/` and are named `*.test.js`; a test that proves a criterion names its `AC-n` id in its title.
 
 ## Layers
 <!-- Fill in the file or folder for each layer. -->
+- HTTP route handlers: `src/routes/`
+- Services: `src/services/`
+- Data access: `src/data/`
+- Database: PostgreSQL, schema in `src/db/schema.sql`
+
 Requests arrive two ways and both end in the same place:
 
 - HTTP route handler → service → data access → database
@@ -30,7 +44,7 @@ that talks to the database directly is a second, unguarded way into your data: n
 
 ## The model feature
 <!-- Provider, env var, and the call site. -->
-- The provider is named in exactly one file: 
+- The provider is named in exactly one file: `src/model/gemini.js` (not built yet; see "The model feature" in `SPEC.md`).
 - The key comes from an environment variable and is never committed or logged.
 - Every call has a timeout and a deterministic fallback, so the app still works when the provider is down or rate-limited.
 - The model's output is re-checked against real data before anything is saved or shown.
@@ -38,7 +52,7 @@ that talks to the database directly is a second, unguarded way into your data: n
 
 ## The MCP server
 <!-- Where it lives and how it authenticates. -->
-- Lives in `mcp-server/`, grew out of Exercise 1.
+- Lives in `mcp-server/`, grew out of Exercise 1. It still serves the Exercise 1 lecture tools until the project tools in `SPEC.md` are built.
 - Every tool calls a service function; none touches the data layer or the database directly.
 - It carries a user, and enforces exactly the same authorization rules as the HTTP API.
 - Adding a tool means adding a row to the table in `SPEC.md` too.

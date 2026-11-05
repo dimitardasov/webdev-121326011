@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Upcoming events · Club Events</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="bar">
+    <strong>Club Events</strong>
+    <span><span id="who" class="muted"></span> <button id="logout" type="button" class="link">Sign out</button></span>
+  </header>
+
+  <main>
+    <h1>Upcoming events</h1>
+
+    <!-- Four states: exactly one of these is visible at a time. -->
+    <p id="loading" class="muted">Loading events…</p>
+    <p id="empty" class="muted" hidden>There are no upcoming events yet.</p>
+    <div id="error" class="error" role="alert" hidden>
+      <p>Could not load the events.</p>
+      <button id="retry" type="button">Try again</button>
+    </div>
+    <ul id="list" class="events" hidden></ul>
+  </main>
+
+  <template id="event-row">
+    <li>
+      <h2 class="title"></h2>
+      <p class="when muted"></p>
+      <p class="places"></p>
+    </li>
+  </template>
+  <script src="/assets/events.js"></script>
+</body>
+</html>
