@@ -54,3 +54,12 @@ One entry per agent session, newest at the bottom. Be honest: what went wrong is
 - member signs up for an event with free places: 201; organizer signs up for a full event: 409 "This event is full"; no cookie: 401.
 - organizer cancels the member's registration: 403; no cookie: 401; member cancels their own: 204.
 - Found: the seeded "Build an MCP server" was dated 14 days after the seed, so by now it had already started and sign-up gave 409 "This event has already started". The code was right; the seed data aged. I moved the event forward in my local database with an UPDATE.
+
+## Какво направи агентът без моя поръчка
+- Created src/mcp-services.js outside mcp-server/ and test/, although its plan said it would touch no other folder. Kept: it builds the services in one place, so the MCP server never requires src/data or src/db.
+- Changed test/events.service.test.js, a test that already passed, without asking: it added an isRegistered check and removed no assertion. Kept.
+- Changed the npm script db:setup in package.json so it no longer runs db:migrate first, because setup.js now runs the migrations itself. Kept.
+- Tried to create a file named test-placeholder in the repository root, which no step asked for. I answered Skip; it does not exist.
+- Changed src/services/registrations.js again in the last step to add listForOrganizer for AC-8. Kept, it was in the plan.
+- Left src/db/schema.sql in place although nothing uses it any more; the migrations replaced it. Kept for now, to remove in Exercise 4.
+- The architecture note in SPEC.md was drafted by Claude from my code after the push; I checked every file name in it against the code.
