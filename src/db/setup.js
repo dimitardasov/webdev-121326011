@@ -1,12 +1,11 @@
 // Creates the tables and, on an empty database, the seed data that slice 1 is checked against.
 //   npm run db:setup
-const fs = require('node:fs');
-const path = require('node:path');
 const pool = require('./pool');
+const { runMigrations } = require('./migrate');
 const { hashPassword } = require('../lib/passwords');
 
 async function main() {
-  await pool.query(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
+  await runMigrations(pool);
 
   const { rows } = await pool.query('SELECT count(*)::int AS n FROM users');
   if (rows[0].n > 0) {

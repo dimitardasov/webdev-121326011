@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env src/server.js",
     "db:start": "docker start club-db 2>/dev/null || docker run -d --name club-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=club -p 5432:5432 postgres:16",
+    "db:migrate": "node --env-file-if-exists=.env src/db/migrate.js",
     "db:setup": "node --env-file-if-exists=.env src/db/setup.js",
     "test": "node --test && node mcp-server/check.mjs -- npm run --silent mcp",
     "mcp": "node mcp-server/server.js"
