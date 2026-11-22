@@ -61,8 +61,13 @@ Club events: a student club publishes events with a limited number of places, me
 - Every screen handles four states: loading, empty, error (with a way to retry) and success.
 
 ## Architecture
-<!-- Exercise 3. One request traced through every layer, naming the file for each one,
-     plus one place where your own code does not match this layering. -->
+One request: a signed-in member presses "Sign up" on /events.
+- Browser: views/events.html shows the list; public/events.js, function changeRegistration(event, row, button), sends POST /api/events/:id/registrations with fetch. On success it calls registrationUpdate(event, response) to get the new free places and the button label, and updates the row without reloading. On an error it shows the server's message, for example "This event is full", next to the event.
+- Route: src/routes/events.js, router.post('/api/events/:id/registrations'), reads the session user through auth.currentUser and calls registrations.register(user, req.params.id). It answers 201 with "You are signed up"; any ServiceError goes to next(error), and the error handler in src/app.js turns it into its status code and { error }.
+- Service: src/services/registrations.js, register(user, eventId), holds every rule: 401 without a user, then inside registrations.withEventTransaction 404 for a missing event, 409 "This event has already started", 409 "You are already signed up" and 409 "This event is full", and only then insertRegistration.
+- Data: src/data/registrations.js, withEventTransaction, opens a transaction, locks the event row with SELECT ... FOR UPDATE so two requests cannot both take the last place, and runs COUNT, SELECT and INSERT INTO registrations with parameters ($1, $2). It commits on success and rolls back on any error. Only this layer writes SQL.
+- Database: PostgreSQL table registrations, primary key (user_id, event_id), created by migrations/002_registrations.sql and applied by src/db/migrate.js.
+- Mismatch: the browser recomputes free places itself in registrationUpdate (public/events.js) instead of reading them from the service, so one rule, "capacity minus registrations", lives in two layers. I left it because the API answers only 201 or 204 and the screen should update without a reload; the next load of /events takes the real number from src/services/events.js, so the server stays the source of truth.
 
 ## Acceptance criteria
 <!-- Every criterion carries an id. A test proves it by naming that id in its title, for example
