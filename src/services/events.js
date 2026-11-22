@@ -5,13 +5,14 @@ function createEventService({ events, clock = () => new Date() }) {
   return {
     async listUpcoming(user) {
       if (!user) throw new ServiceError(401, 'Sign in to see events.');
-      const rows = await events.listStartingAfter(clock());
+      const rows = await events.listStartingAfter(clock(), user.id);
       return rows.map((event) => ({
         id: event.id,
         title: event.title,
         startsAt: event.startsAt,
         capacity: event.capacity,
         freePlaces: Math.max(0, event.capacity - event.registered),
+        isRegistered: Boolean(event.isRegistered),
       }));
     },
   };
