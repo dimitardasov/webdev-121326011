@@ -22,4 +22,24 @@ async function listStartingAfter(since, userId) {
   }));
 }
 
-module.exports = { listStartingAfter };
+async function createEvent({ title, startsAt, capacity, createdBy }) {
+  const { rows } = await pool.query(
+    `INSERT INTO events (club_id, title, starts_at, capacity, created_by)
+     SELECT id, $1, $2, $3, $4
+       FROM clubs
+      WHERE name = 'Informatics Club'
+     RETURNING id, title, starts_at, capacity, created_by`,
+    [title, startsAt, capacity, createdBy],
+  );
+  const row = rows[0];
+  if (!row) throw new Error('Informatics Club not found.');
+  return {
+    id: row.id,
+    title: row.title,
+    startsAt: row.starts_at,
+    capacity: row.capacity,
+    createdBy: row.created_by,
+  };
+}
+
+module.exports = { listStartingAfter, createEvent };

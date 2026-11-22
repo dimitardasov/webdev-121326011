@@ -99,7 +99,7 @@ const upcomingEvent = {
   capacity: 2,
 };
 
-test('AC-16 POST registration returns 201 and creates one row', async (t) => {
+test('AC-16 AC-3 POST registration returns 201 and creates one row', async (t) => {
   const api = await withApi(t, { events: [upcomingEvent] });
   const cookie = await signedInCookie(api.baseUrl);
 
@@ -115,7 +115,7 @@ test('AC-16 POST registration returns 201 and creates one row', async (t) => {
   assert.equal(api.registrationRows[0].eventId, upcomingEvent.id);
 });
 
-test('AC-17 POST for a full event returns 409 and creates no row', async (t) => {
+test('AC-17 AC-4 POST for a full event returns 409 and creates no row', async (t) => {
   const api = await withApi(t, {
     events: [{ ...upcomingEvent, capacity: 1 }],
     registrations: [{ userId: 3, eventId: 7 }],
@@ -132,7 +132,7 @@ test('AC-17 POST for a full event returns 409 and creates no row', async (t) => 
   assert.equal(api.registrationRows.length, 1);
 });
 
-test('AC-18 POST for an existing registration returns 409 and keeps one row', async (t) => {
+test('AC-18 AC-5 POST for an existing registration returns 409 and keeps one row', async (t) => {
   const api = await withApi(t, {
     events: [upcomingEvent],
     registrations: [{ userId: member.id, eventId: 7 }],
@@ -185,7 +185,7 @@ test('AC-20 POST for a missing event returns 404 and for a started event returns
   assert.equal(api.registrationRows.length, 0);
 });
 
-test('AC-21 DELETE own registration returns 204 and removes the row', async (t) => {
+test('AC-21 AC-6 DELETE own registration returns 204 and removes the row', async (t) => {
   const api = await withApi(t, {
     events: [upcomingEvent],
     registrations: [{ userId: member.id, eventId: 7 }],

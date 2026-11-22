@@ -45,3 +45,105 @@ test('currentUser is null without a session and for a deleted user', async () =>
   assert.equal(await auth.currentUser(999), null);
   assert.equal((await auth.currentUser(2)).email, 'member@club.test');
 });
+
+test('AC-9 signInWithProvider links a verified email to the existing account', async () => {
+  const calls = [];
+  const users = {
+    async findIdentity() { return null; },
+    async findByEmail(email) {
+      assert.equal(email, 'member@club.test');
+      return member;
+    },
+    async createProviderUser() { throw new Error('should not create a duplicate user'); },
+    async linkIdentity(provider, providerUserId, userId) {
+      calls.push({ provider, providerUserId, userId });
+    },
+  };
+  const providerAuth = createAuthService({ users });
+
+  const user = await providerAuth.signInWithProvider({
+    provider: 'github',
+    providerUserId: '100',
+    email: 'Member@Club.test',
+    emailVerified: true,
+    name: 'Mihail',
+  });
+
+  assert.deepEqual(user, { id: 2, email: 'member@club.test', name: 'Mihail', role: 'member' });
+  assert.deepEqual(calls, [{ provider: 'github', providerUserId: '100', userId: 2 }]);
+});
+
+test('AC-9 signInWithProvider finds an existing identity before email linking', async () => {
+  const users = {
+    async findIdentity(provider, providerUserId) {
+      assert.equal(provider, 'github');
+      assert.equal(providerUserId, '100');
+      return githubOnly;
+    },
+  };
+  const providerAuth = createAuthService({ users });
+  const user = await providerAuth.signInWithProvider({
+    provider: 'github',
+    providerUserId: '100',
+    email: 'gh@club.test',
+    emailVerified: true,
+  });
+  assert.equal(user.id, githubOnly.id);
+});
+
+test('AC-9 signInWithProvider creates a passwordless user and links the identity', async () => {
+  const calls = [];
+  const created = { id: 4, email: 'new@club.test', name: 'New User', role: 'member', passwordHash: null };
+  const users = {
+    async findIdentity() { return null; },
+    async findByEmail() { return null; },
+    async createProviderUser(input) {
+      calls.push(['create', input]);
+      return created;
+    },
+    async linkIdentity(provider, providerUserId, userId) {
+      calls.push(['link', provider, providerUserId, userId]);
+    },
+  };
+  const providerAuth = createAuthService({ users });
+  const user = await providerAuth.signInWithProvider({
+    provider: 'github',
+    providerUserId: '200',
+    email: 'New@Club.test',
+    emailVerified: true,
+    name: 'New User',
+  });
+  assert.equal(user.id, 4);
+  assert.deepEqual(calls, [
+    ['create', { email: 'new@club.test', name: 'New User' }],
+    ['link', 'github', '200', 4],
+  ]);
+});
+
+test('AC-9 an unverified email is not used to link to an existing account', async () => {
+  const calls = [];
+  const created = { id: 5, email: 'other@club.test', name: 'Other', role: 'member', passwordHash: null };
+  const users = {
+    async findIdentity() { return null; },
+    async findByEmail() { throw new Error('unverified email must not be looked up'); },
+    async createProviderUser(input) {
+      calls.push(['create', input]);
+      return created;
+    },
+    async linkIdentity(provider, providerUserId, userId) {
+      calls.push(['link', provider, providerUserId, userId]);
+    },
+  };
+  const providerAuth = createAuthService({ users });
+  await providerAuth.signInWithProvider({
+    provider: 'github',
+    providerUserId: '300',
+    email: 'other@club.test',
+    emailVerified: false,
+    name: 'Other',
+  });
+  assert.deepEqual(calls, [
+    ['create', { email: 'other@club.test', name: 'Other' }],
+    ['link', 'github', '300', 5],
+  ]);
+});

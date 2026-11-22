@@ -15,6 +15,33 @@ function createEventService({ events, clock = () => new Date() }) {
         isRegistered: Boolean(event.isRegistered),
       }));
     },
+
+    async create(user, input) {
+      if (!user) throw new ServiceError(401, 'Sign in to create events.');
+      if (user.role !== 'organizer') {
+        throw new ServiceError(403, 'Only organizers can create events.');
+      }
+
+      const title = typeof input?.title === 'string' ? input.title.trim() : '';
+      const startsAt = new Date(input?.startsAt);
+      const capacity = Number(input?.capacity);
+
+      if (!title || title.length > 120
+        || Number.isNaN(startsAt.getTime())
+        || startsAt <= clock()
+        || !Number.isInteger(capacity)
+        || capacity < 1
+        || capacity > 500) {
+        throw new ServiceError(400, 'Invalid event details.');
+      }
+
+      return events.createEvent({
+        title,
+        startsAt,
+        capacity,
+        createdBy: user.id,
+      });
+    },
   };
 }
 

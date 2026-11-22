@@ -42,6 +42,49 @@ test('AC-2 free places are capacity minus registrations, never below zero', asyn
   ]);
 });
 
+test('AC-7 an organizer creates a valid event and members cannot create one', async () => {
+  const created = [];
+  const events = {
+    async listStartingAfter() { return []; },
+    async createEvent(input) {
+      created.push(input);
+      return { id: 8, ...input };
+    },
+  };
+  const service = createEventService({ events, clock: () => NOW });
+  const organizer = { id: 1, role: 'organizer' };
+
+  const result = await service.create(organizer, {
+    title: 'REST workshop',
+    startsAt: '2026-11-12T10:00:00Z',
+    capacity: 20,
+  });
+
+  assert.equal(result.id, 8);
+  assert.equal(created.length, 1);
+  assert.equal(created[0].capacity, 20);
+  await assert.rejects(
+    service.create(member, { title: 'REST workshop', startsAt: '2026-11-12T10:00:00Z', capacity: 20 }),
+    { status: 403 },
+  );
+  assert.equal(created.length, 1);
+});
+
+test('AC-7 event creation refuses missing, past, and invalid capacity data', async () => {
+  const events = {
+    async listStartingAfter() { return []; },
+    async createEvent() { throw new Error('should not be called'); },
+  };
+  const service = createEventService({ events, clock: () => NOW });
+  const organizer = { id: 1, role: 'organizer' };
+
+  await assert.rejects(service.create(null, { title: 'Event', startsAt: '2026-11-12T10:00:00Z', capacity: 20 }), { status: 401 });
+  await assert.rejects(service.create(organizer, { title: '', startsAt: '2026-11-12T10:00:00Z', capacity: 20 }), { status: 400 });
+  await assert.rejects(service.create(organizer, { title: 'Past', startsAt: '2026-11-05T10:00:00Z', capacity: 20 }), { status: 400 });
+  await assert.rejects(service.create(organizer, { title: 'Low', startsAt: '2026-11-12T10:00:00Z', capacity: 0 }), { status: 400 });
+  await assert.rejects(service.create(organizer, { title: 'High', startsAt: '2026-11-12T10:00:00Z', capacity: 501 }), { status: 400 });
+});
+
 test('the default clock is the real time', async () => {
   let asked;
   const service = createEventService({

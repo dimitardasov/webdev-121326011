@@ -98,29 +98,29 @@ Club events: a student club publishes events with a limited number of places, me
 <!-- Filled in from Exercise 3 onward: each AC id, and the test that names it. -->
 | Criterion | Test |
 | --- | --- |
-| AC-1 |  |
-| AC-2 |  |
-| AC-3 |  |
-| AC-4 |  |
-| AC-5 |  |
-| AC-6 |  |
-| AC-7 |  |
-| AC-8 |  |
-| AC-9 |  |
-| AC-10 |  |
-| AC-11 |  |
-| AC-12 |  |
-| AC-13 |  |
-| AC-14 |  |
-| AC-15 |  |
-| AC-16 |  |
-| AC-17 |  |
-| AC-18 |  |
-| AC-19 |  |
-| AC-20 |  |
-| AC-21 |  |
-| AC-22 |  |
-| AC-23 |  |
+| AC-1 | `test/events.service.test.js` — “AC-1 only events after "now" are asked for” |
+| AC-2 | `test/events.service.test.js` — “AC-2 free places are capacity minus registrations, never below zero” |
+| AC-3 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-16 AC-3…” |
+| AC-4 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-17 AC-4…” |
+| AC-5 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-18 AC-5…” |
+| AC-6 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-21 AC-6…” |
+| AC-7 | `test/events.service.test.js` and `test/events.api.test.js` — “AC-7…” |
+| AC-8 | `test/registrations.service.test.js` and `test/events.api.test.js` — “AC-8…” |
+| AC-9 | `test/auth.service.test.js` — “AC-9…” |
+| AC-10 | `test/suggestions.service.test.js` — “AC-10…” |
+| AC-11 | `test/auth.service.test.js` — “AC-11…” |
+| AC-12 | `test/events.service.test.js` — “AC-12…” |
+| AC-13 | `test/events.api.test.js` — “AC-13…” |
+| AC-14 | `test/events.api.test.js` — “AC-14…” |
+| AC-15 | `test/events.api.test.js` — “AC-15…” |
+| AC-16 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-16 AC-3…” |
+| AC-17 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-17 AC-4…” |
+| AC-18 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-18 AC-5…” |
+| AC-19 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-19…” |
+| AC-20 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-20…” |
+| AC-21 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-21 AC-6…” |
+| AC-22 | `test/registrations.service.test.js` and `test/registrations.api.test.js` — “AC-22…” |
+| AC-23 | `test/events.ui.test.js` — “AC-23…” |
 
 ## Spec vs result
 <!-- After the agent builds the slice: which criteria passed, which it missed or reinterpreted, and what you changed in this spec because of it. -->

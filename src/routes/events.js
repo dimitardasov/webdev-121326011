@@ -13,6 +13,25 @@ function eventRoutes({ auth, events, registrations }) {
     }
   });
 
+  router.post('/api/events', async (req, res, next) => {
+    try {
+      const user = await auth.currentUser(req.session.userId);
+      const event = await events.create(user, req.body);
+      res.status(201).json({ event });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get('/api/events/:id/registrations', async (req, res, next) => {
+    try {
+      const user = await auth.currentUser(req.session.userId);
+      res.json({ registrations: await registrations.listForOrganizer(user, req.params.id) });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post('/api/events/:id/registrations', async (req, res, next) => {
     try {
       const user = await auth.currentUser(req.session.userId);

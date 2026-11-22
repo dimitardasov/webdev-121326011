@@ -50,7 +50,7 @@ function serviceWith({ event = upcomingEvent, seeded = [] } = {}) {
   };
 }
 
-test('AC-16 a member signs up for an upcoming event with a free place', async () => {
+test('AC-16 AC-3 a member signs up for an upcoming event with a free place', async () => {
   const { service, registrations } = serviceWith();
 
   const result = await service.register(member, 7);
@@ -64,7 +64,7 @@ test('AC-16 a member signs up for an upcoming event with a free place', async ()
   assert.equal(result.userId, member.id);
 });
 
-test('AC-17 a member cannot sign up for a full event', async () => {
+test('AC-17 AC-4 a member cannot sign up for a full event', async () => {
   const { service, registrations } = serviceWith({
     event: { ...upcomingEvent, capacity: 1 },
     seeded: [{ userId: 3, eventId: 7 }],
@@ -77,7 +77,7 @@ test('AC-17 a member cannot sign up for a full event', async () => {
   assert.deepEqual(registrations, [{ userId: 3, eventId: 7 }]);
 });
 
-test('AC-18 a member cannot sign up twice for the same event', async () => {
+test('AC-18 AC-5 a member cannot sign up twice for the same event', async () => {
   const existing = { userId: member.id, eventId: 7 };
   const { service, registrations } = serviceWith({ seeded: [existing] });
 
@@ -121,7 +121,7 @@ test('AC-20 a missing or already-started event cannot be signed up for', async (
   });
 });
 
-test('AC-21 a member cancels their own registration', async () => {
+test('AC-21 AC-6 a member cancels their own registration', async () => {
   const { service, registrations } = serviceWith({
     seeded: [{ userId: member.id, eventId: 7 }],
   });
@@ -140,4 +140,21 @@ test("AC-22 a member cannot cancel another member's registration", async () => {
     message: 'You can only cancel your own registration.',
   });
   assert.deepEqual(registrations, [otherRegistration]);
+});
+
+test('AC-8 only an organizer can list event registrations', async () => {
+  const data = {
+    async eventExists(eventId) { return String(eventId) === '7'; },
+    async listByEventId(eventId) {
+      return [{ userId: 2, name: 'Mihail Member', signedUpAt: NOW }];
+    },
+  };
+  const service = createRegistrationService({ registrations: data, clock: () => NOW });
+  const organizer = { id: 1, role: 'organizer' };
+
+  assert.deepEqual(await service.listForOrganizer(organizer, 7), [
+    { userId: 2, name: 'Mihail Member', signedUpAt: NOW },
+  ]);
+  await assert.rejects(service.listForOrganizer(member, 7), { status: 403 });
+  await assert.rejects(service.listForOrganizer(null, 7), { status: 401 });
 });

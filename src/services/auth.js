@@ -23,6 +23,40 @@ function createAuthService({ users }) {
       const user = await users.findById(userId);
       return user ? publicUser(user) : null;
     },
+
+    async signInWithProvider(profile) {
+      const provider = String(profile?.provider || '');
+      const providerUserId = String(profile?.providerUserId || '');
+      if (!provider || !providerUserId) {
+        throw new ServiceError(400, 'Provider identity is missing.');
+      }
+
+      const existingIdentity = await users.findIdentity(provider, providerUserId);
+      if (existingIdentity) return publicUser(existingIdentity);
+
+      const email = typeof profile.email === 'string'
+        ? profile.email.trim().toLowerCase()
+        : '';
+      let user = null;
+
+      if (profile.emailVerified && email) {
+        user = await users.findByEmail(email);
+      }
+      if (!user) {
+        if (!email) {
+          throw new ServiceError(400, 'A verified email is required.');
+        }
+        user = await users.createProviderUser({
+          email,
+          name: typeof profile.name === 'string' && profile.name.trim()
+            ? profile.name.trim()
+            : email,
+        });
+      }
+
+      await users.linkIdentity(provider, providerUserId, user.id);
+      return publicUser(user);
+    },
   };
 }
 

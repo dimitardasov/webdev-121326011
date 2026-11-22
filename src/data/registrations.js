@@ -61,4 +61,30 @@ async function withEventTransaction(eventId, operation) {
   }
 }
 
-module.exports = { withEventTransaction };
+async function eventExists(eventId) {
+  const pool = require('../db/pool');
+  const { rowCount } = await pool.query(
+    'SELECT 1 FROM events WHERE id = $1',
+    [eventId],
+  );
+  return rowCount > 0;
+}
+
+async function listByEventId(eventId) {
+  const pool = require('../db/pool');
+  const { rows } = await pool.query(
+    `SELECT u.id, u.name, r.created_at
+       FROM registrations r
+       JOIN users u ON u.id = r.user_id
+      WHERE r.event_id = $1
+      ORDER BY r.created_at, u.name`,
+    [eventId],
+  );
+  return rows.map((row) => ({
+    userId: row.id,
+    name: row.name,
+    signedUpAt: row.created_at,
+  }));
+}
+
+module.exports = { withEventTransaction, eventExists, listByEventId };
