@@ -69,3 +69,4 @@ One entry per agent session, newest at the bottom. Be honest: what went wrong is
 - Found: GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET are read nowhere: GitHub sign-in is not built yet.
 - Step 2, the agent's claim: "no literal credentials found".
 - Step 2, my own search: git log -p | grep found the seed passwords member-pass and organizer-pass (src/db/setup.js, AGENTS.md, tests) and postgres:postgres for the local Docker database in .env.example, which the agent's report did not mention. None of them is a key for an outside service, so nothing had to be rotated; the seed accounts must never exist with these passwords in the production database.
+- Step 3: created the Neon project (Frankfurt), applied the migrations and the seed to it with npm run db:setup. Seed passwords there come from SEED_MEMBER_PASSWORD and SEED_ORGANIZER_PASSWORD, generated with openssl, never shown. I reset the Neon password after it appeared on a screenshot.ss
