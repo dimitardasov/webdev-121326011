@@ -63,3 +63,9 @@ One entry per agent session, newest at the bottom. Be honest: what went wrong is
 - Changed src/services/registrations.js again in the last step to add listForOrganizer for AC-8. Kept, it was in the plan.
 - Left src/db/schema.sql in place although nothing uses it any more; the migrations replaced it. Kept for now, to remove in Exercise 4.
 - The architecture note in SPEC.md was drafted by Claude from my code after the push; I checked every file name in it against the code.
+## 2026-11-22 · Exercise 4: secrets and environment
+- Agent: GitHub Copilot, Agent mode, Manual permissions.
+- Step 1: Copilot listed every variable the code reads (DATABASE_URL, SESSION_SECRET, PORT, GEMINI_API_KEY, MODEL_NAME, MCP_EMAIL, MCP_PASSWORD) and added the startup check in src/server.js. I checked it: SESSION_SECRET= npm start stops with "missing SESSION_SECRET: see .env.example". I rewrote .env.example myself and removed MCP_TOKEN, which nothing reads.
+- Found: GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET are read nowhere: GitHub sign-in is not built yet.
+- Step 2, the agent's claim: "no literal credentials found".
+- Step 2, my own search: git log -p | grep found the seed passwords member-pass and organizer-pass (src/db/setup.js, AGENTS.md, tests) and postgres:postgres for the local Docker database in .env.example, which the agent's report did not mention. None of them is a key for an outside service, so nothing had to be rotated; the seed accounts must never exist with these passwords in the production database.s
