@@ -85,12 +85,42 @@ Club events: a student club publishes events with a limited number of places, me
 - [AC-13] After signing in with the seeded member account, `/events` shows the three seeded upcoming events, each with its title, date and number of free places, and does not show the seeded past event.
 - [AC-14] Deleting one event row in the database and reloading `/events` removes that event from the screen.
 - [AC-15] After pressing "Sign out", reloading `/events` lands on `/login` again.
-
+### Slice 2: signing up for an event and cancelling
+- [AC-16] A signed-in member who sends `POST /api/events/:id/registrations` for an upcoming event with free places gets 201, sees "You are signed up", and exactly one row for that member and event appears in `registrations`.
+- [AC-17] A member who signs up for an event with no free places gets 409 with "This event is full", and no row is added to `registrations`.
+- [AC-18] A member who signs up for an event they are already signed up for gets 409 with "You are already signed up", and `registrations` still holds one row for them.
+- [AC-19] A visitor who sends `POST /api/events/:id/registrations` without signing in gets 401, and no row is added to `registrations`.
+- [AC-20] A member who signs up for an event id that does not exist gets 404, and for an event that has already started gets 409 with "This event has already started".
+- [AC-21] A member who sends `DELETE /api/events/:id/registrations/:userId` with their own user id gets 204, their row is gone, and the event's free places go up by one.
+- [AC-22] A member who sends `DELETE /api/events/:id/registrations/:userId` with another member's user id gets 403, and that member's row stays in `registrations`.
+- [AC-23] On `/events`, a member presses "Sign up" on an event with free places and sees the button change to "Cancel" and the free places go down by one without reloading the page.
 ## Traceability
 <!-- Filled in from Exercise 3 onward: each AC id, and the test that names it. -->
 | Criterion | Test |
 | --- | --- |
 | AC-1 |  |
+| AC-2 |  |
+| AC-3 |  |
+| AC-4 |  |
+| AC-5 |  |
+| AC-6 |  |
+| AC-7 |  |
+| AC-8 |  |
+| AC-9 |  |
+| AC-10 |  |
+| AC-11 |  |
+| AC-12 |  |
+| AC-13 |  |
+| AC-14 |  |
+| AC-15 |  |
+| AC-16 |  |
+| AC-17 |  |
+| AC-18 |  |
+| AC-19 |  |
+| AC-20 |  |
+| AC-21 |  |
+| AC-22 |  |
+| AC-23 |  |
 
 ## Spec vs result
 <!-- After the agent builds the slice: which criteria passed, which it missed or reinterpreted, and what you changed in this spec because of it. -->
