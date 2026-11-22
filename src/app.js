@@ -3,19 +3,22 @@ const path = require('node:path');
 const express = require('express');
 const session = require('express-session');
 
-const users = require('./data/users');
-const eventData = require('./data/events');
-const { createAuthService } = require('./services/auth');
-const { createEventService } = require('./services/events');
 const { ServiceError } = require('./services/errors');
 const { authRoutes } = require('./routes/auth');
 const { eventRoutes } = require('./routes/events');
 const { pageRoutes } = require('./routes/pages');
 
-function createApp() {
-  const auth = createAuthService({ users });
-  const events = createEventService({ events: eventData });
-
+function createApp({
+  auth = require('./services/auth').createAuthService({
+    users: require('./data/users'),
+  }),
+  events = require('./services/events').createEventService({
+    events: require('./data/events'),
+  }),
+  registrations = require('./services/registrations').createRegistrationService({
+    registrations: require('./data/registrations'),
+  }),
+} = {}) {
   const app = express();
   // The codespace's forwarded port is HTTPS in front of plain HTTP: trust that one proxy,
   // so a cookie marked secure is still sent.
@@ -35,7 +38,7 @@ function createApp() {
 
   app.use(pageRoutes({ auth }));
   app.use(authRoutes({ auth }));
-  app.use(eventRoutes({ auth, events }));
+  app.use(eventRoutes({ auth, events, registrations }));
 
   app.use((req, res) => res.status(404).json({ error: 'Not found.' }));
 
