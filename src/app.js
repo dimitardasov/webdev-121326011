@@ -7,6 +7,7 @@ const { ServiceError } = require('./services/errors');
 const { authRoutes } = require('./routes/auth');
 const { eventRoutes } = require('./routes/events');
 const { pageRoutes } = require('./routes/pages');
+const { suggestionRoutes } = require('./routes/suggestions');
 
 function createApp({
   auth = require('./services/auth').createAuthService({
@@ -17,6 +18,9 @@ function createApp({
   }),
   registrations = require('./services/registrations').createRegistrationService({
     registrations: require('./data/registrations'),
+  }),
+  suggestions = require('./services/suggestions').createSuggestionService({
+    client: require('./model/gemini').createGeminiClient(),
   }),
 } = {}) {
   const app = express();
@@ -39,6 +43,7 @@ function createApp({
   app.use(pageRoutes({ auth }));
   app.use(authRoutes({ auth }));
   app.use(eventRoutes({ auth, events, registrations }));
+  app.use(suggestionRoutes({ auth, suggestions }));
 
   app.use((req, res) => res.status(404).json({ error: 'Not found.' }));
 
