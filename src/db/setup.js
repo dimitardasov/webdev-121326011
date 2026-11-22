@@ -4,6 +4,22 @@ const pool = require('./pool');
 const { runMigrations } = require('./migrate');
 const { hashPassword } = require('../lib/passwords');
 
+const databaseHost = new URL(process.env.DATABASE_URL).hostname;
+const isLocalDatabase = databaseHost === 'localhost' || databaseHost === '127.0.0.1';
+const seedPasswords = {};
+
+for (const [name, localFallback] of Object.entries({
+  SEED_MEMBER_PASSWORD: 'member-pass',
+  SEED_ORGANIZER_PASSWORD: 'organizer-pass',
+})) {
+  const password = process.env[name];
+  if (!isLocalDatabase && (!password || password.length < 12)) {
+    console.error(`missing ${name}: see .env.example`);
+    process.exit(1);
+  }
+  seedPasswords[name] = password || localFallback;
+}
+
 async function main() {
   await runMigrations(pool);
 
@@ -17,8 +33,8 @@ async function main() {
   try {
     await client.query('BEGIN');
     const insertUser = 'INSERT INTO users (email, name, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id';
-    const organizer = (await client.query(insertUser, ['organizer@club.test', 'Olga Organizer', hashPassword('organizer-pass'), 'organizer'])).rows[0].id;
-    const member = (await client.query(insertUser, ['member@club.test', 'Mihail Member', hashPassword('member-pass'), 'member'])).rows[0].id;
+    const organizer = (await client.query(insertUser, ['organizer@club.test', 'Olga Organizer', hashPassword(seedPasswords.SEED_ORGANIZER_PASSWORD), 'organizer'])).rows[0].id;
+    const member = (await client.query(insertUser, ['member@club.test', 'Mihail Member', hashPassword(seedPasswords.SEED_MEMBER_PASSWORD), 'member'])).rows[0].id;
     const club = (await client.query("INSERT INTO clubs (name) VALUES ('Informatics Club') RETURNING id")).rows[0].id;
 
     const insertEvent = `INSERT INTO events (club_id, title, description, starts_at, capacity, created_by)
