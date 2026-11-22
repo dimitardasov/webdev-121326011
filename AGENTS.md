@@ -72,6 +72,9 @@ that talks to the database directly is a second, unguarded way into your data: n
 - adding, renaming or removing an MCP tool
 - changing a coverage threshold
 - sending user data to a third-party model
+- changing the rule that refuses a sign-up for a full event, or the unique key on `registrations`
+- deleting rows from the database, dropping a table or resetting the database
+- writing a new migration or running one against any database other than the local one
 
 ## Never
 - commit secrets, passwords, API keys or an OAuth client secret

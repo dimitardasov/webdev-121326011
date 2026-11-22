@@ -37,3 +37,9 @@ One entry per agent session, newest at the bottom. Be honest: what went wrong is
 - Checkpoints: Copilot listed all nine lines, from "deleting files or folders" to "sending user data to a third-party model", matching the file.
 - Went wrong: nothing.
 - Changed by hand: nothing.
+## 2026-11-22 · Exercise 3: signing up for an event and cancelling (Slice 2)
+- Agent: GitHub Copilot, Agent mode, Manual permissions.
+- Goal: AC-16 to AC-23 in SPEC.md, through every layer: migration, service, API, authorization, UI, then the MCP tools and the model feature.
+- Autonomy: Copilot may read any file and write files only inside the one step I give it. It stops after each step and does not start the next one.
+- Must stop and ask me: before every terminal command, before installing or removing a package, before changing an existing migration or a test that already passes, before touching .env, AGENTS.md or SPEC.md, and before any git command.
+- Checkpoints: I read the plan before any code; after each step I run npm test, read git diff --staged and commit only if fail is 0; after the migration I apply it to an empty database; after the authorization step I check 401 and 403 with curl.
