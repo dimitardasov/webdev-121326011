@@ -1,0 +1,143 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { createRegistrationService } = require('../src/services/registrations');
+
+const NOW = new Date('2026-11-05T10:00:00Z');
+const member = { id: 2, role: 'member' };
+const upcomingEvent = {
+  id: 7,
+  startsAt: new Date('2026-11-12T10:00:00Z'),
+  capacity: 2,
+};
+
+function serviceWith({ event = upcomingEvent, seeded = [] } = {}) {
+  const registrations = [...seeded];
+  const calls = [];
+  const data = {
+    async withEventTransaction(eventId, operation) {
+      calls.push(eventId);
+      return operation({
+        event: event && String(event.id) === String(eventId) ? event : null,
+        async hasRegistration(userId) {
+          return registrations.some((registration) =>
+            String(registration.userId) === String(userId));
+        },
+        async countRegistrations() {
+          return registrations.filter((registration) =>
+            String(registration.eventId) === String(eventId)).length;
+        },
+        async insertRegistration(userId) {
+          const registration = { userId, eventId, createdAt: NOW };
+          registrations.push(registration);
+          return { createdAt: registration.createdAt };
+        },
+        async deleteRegistration(userId) {
+          const index = registrations.findIndex((registration) =>
+            String(registration.userId) === String(userId)
+              && String(registration.eventId) === String(eventId));
+          if (index === -1) return false;
+          registrations.splice(index, 1);
+          return true;
+        },
+      });
+    },
+  };
+
+  return {
+    service: createRegistrationService({ registrations: data, clock: () => NOW }),
+    registrations,
+    calls,
+  };
+}
+
+test('AC-16 a member signs up for an upcoming event with a free place', async () => {
+  const { service, registrations } = serviceWith();
+
+  const result = await service.register(member, 7);
+
+  assert.equal(registrations.length, 1);
+  assert.deepEqual(registrations[0], {
+    userId: member.id,
+    eventId: 7,
+    createdAt: NOW,
+  });
+  assert.equal(result.userId, member.id);
+});
+
+test('AC-17 a member cannot sign up for a full event', async () => {
+  const { service, registrations } = serviceWith({
+    event: { ...upcomingEvent, capacity: 1 },
+    seeded: [{ userId: 3, eventId: 7 }],
+  });
+
+  await assert.rejects(service.register(member, 7), {
+    status: 409,
+    message: 'This event is full',
+  });
+  assert.deepEqual(registrations, [{ userId: 3, eventId: 7 }]);
+});
+
+test('AC-18 a member cannot sign up twice for the same event', async () => {
+  const existing = { userId: member.id, eventId: 7 };
+  const { service, registrations } = serviceWith({ seeded: [existing] });
+
+  await assert.rejects(service.register(member, 7), {
+    status: 409,
+    message: 'You are already signed up',
+  });
+  assert.deepEqual(registrations, [existing]);
+});
+
+test('AC-19 a visitor cannot sign up', async () => {
+  const { service, registrations, calls } = serviceWith();
+
+  await assert.rejects(service.register(null, 7), { status: 401 });
+
+  assert.deepEqual(registrations, []);
+  assert.deepEqual(calls, []);
+});
+
+test('AC-20 a missing or already-started event cannot be signed up for', async (t) => {
+  await t.test('missing event', async () => {
+    const { service, registrations } = serviceWith({ event: null });
+
+    await assert.rejects(service.register(member, 999), {
+      status: 404,
+      message: 'Event not found.',
+    });
+    assert.deepEqual(registrations, []);
+  });
+
+  await t.test('event has already started', async () => {
+    const { service, registrations } = serviceWith({
+      event: { ...upcomingEvent, startsAt: NOW },
+    });
+
+    await assert.rejects(service.register(member, 7), {
+      status: 409,
+      message: 'This event has already started',
+    });
+    assert.deepEqual(registrations, []);
+  });
+});
+
+test('AC-21 a member cancels their own registration', async () => {
+  const { service, registrations } = serviceWith({
+    seeded: [{ userId: member.id, eventId: 7 }],
+  });
+
+  await service.cancel(member, 7, member.id);
+
+  assert.deepEqual(registrations, []);
+});
+
+test("AC-22 a member cannot cancel another member's registration", async () => {
+  const otherRegistration = { userId: 3, eventId: 7 };
+  const { service, registrations } = serviceWith({ seeded: [otherRegistration] });
+
+  await assert.rejects(service.cancel(member, 7, 3), {
+    status: 403,
+    message: 'You can only cancel your own registration.',
+  });
+  assert.deepEqual(registrations, [otherRegistration]);
+});
