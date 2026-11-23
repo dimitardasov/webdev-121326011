@@ -35,19 +35,21 @@
 ## 7. Known gaps, ranked by risk
 1. Cold start: the free Render instance sleeps and the first request can take 50 s or more; Neon also sleeps, so the first /health after a pause answered 503 "db: down" because waking took longer than the 2-second limit. With 100 students arriving at once, the first ones would see errors.
 2. No rate limit on /api/login, so passwords can be guessed without any slowdown.
-3. Two screens from SPEC.md are not built: event details and New event. An organizer can create an event only through the API.
+3. The Event details screen from SPEC.md is not built; sign-in, Upcoming events and New event are.
 4. The server does not handle SIGTERM: in Docker, Ctrl+C did not stop it, so on every deploy Render kills it after a timeout instead of closing database connections cleanly.
 5. The error text when the database is down is generic: "Something went wrong. Try again." does not tell the user the service is temporarily unavailable.
 6. The seed events are dated relative to the seeding day, so they turn into past events; "Build an MCP server" had already started when I tested sign-up.
 7. Coverage outside the services is uneven: routes/auth.js 78% lines, routes/suggestions.js 67%, db/migrate.js 69%, data/health.js 50%, auth/github.js 65% branches.
 8. Housekeeping: src/db/schema.sql is no longer used; the startup log says "In a codespace, open the forwarded port" in production too.
 9. The Neon password appeared in screenshots during setup; it was reset each time.
+10. The model provider is not reliable on the free tier: on the live site Gemini answered 404 for gemini-2.5-flash (retired name from the template), 400 for thinkingConfig and 503 for gemini-3.5-flash-lite and gemini-3.8-flash. The app fell back every time; until the reason was logged, nobody could tell why.
 
 ## 8. Model feature
-- POST /api/events/suggest: an organizer's announcement text goes to Gemini (src/model/gemini.js) with a 5-second timeout; on a timeout, 429, network error, missing key or invalid JSON the organizer gets empty fields and "Suggestions are unavailable, fill in the form yourself". The reply is re-checked: past dates, places outside 1-500 and titles over 120 characters are dropped.
-- On the live site GEMINI_API_KEY is not set, so it always answers with the fallback; it is not reachable from the UI yet, because the New event screen is not built.
-- How I checked: test/suggestions.service.test.js and test/gemini.client.test.js with a fake client; the service layer is at 100% coverage. I did not call the real model.
-- Price of one call, from the Gemini API pricing page (ai.google.dev/gemini-api/docs/pricing, gemini-2.5-flash paid tier, checked 2026-11-23): $0.30 per 1M input tokens and $2.50 per 1M output tokens, thinking included. One suggestion sends about 500 input tokens (instructions plus the announcement) and gets about 200 output tokens back, so about $0.00015 + $0.0005 = $0.00065 per call, about $0.65 per 1,000 calls. On the free tier it costs nothing but is rate-limited, which the fallback covers.
+- What leaves the app: only the announcement text an organizer pastes on /organizer/events/new and today's date are sent to Google's Gemini API; no user names, emails or registrations.
+- The model is named only in src/model/gemini.js; MODEL_NAME is gemini-3.8-flash in Render, GEMINI_API_KEY is set there.
+- When it fails: 5-second timeout; on a timeout, 429, 4xx/5xx, network error or invalid JSON the organizer sees "Suggestions are unavailable, fill in the form yourself" and can still create the event. The reason is logged as "model suggestion fell back: …", never the key or the text. Model answers are re-checked: past dates, places outside 1-500 and titles over 120 characters are dropped.
+- Price of one call: gemini-3.8-flash at the introductory API list price of $0.75 per 1M input tokens and $3.75 per 1M output tokens (through Dec 31, 2026). About 500 input and 200 output tokens per suggestion is about $0.0011 per call, about $1.10 per 1,000 calls. On the free tier it costs nothing but is rate-limited.
+- How I checked: test/suggestions.service.test.js and test/gemini.client.test.js with a fake client (services at 100%); on the live site I saw "Asking the model…" and the fallback, and the reason in Render's log.
 
 ## 9. MCP
 - mcp-server/server.js offers list_upcoming_events, register_for_event and cancel_registration, each through the same services as the HTTP API; it signs in with MCP_EMAIL and MCP_PASSWORD and may do only what that user may do.

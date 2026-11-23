@@ -64,4 +64,4 @@ A screen that only handles "it worked" is a screen that lies to the user on the 
 ![the list, content state](ui/content.png)
 ![offline Sign up, error state](ui/error.png)
 - Loading, content and error on /events were checked live with DevTools (Slow 4G and Offline); screenshots in docs/ui/.
-- The empty state and the model feature have no live screenshot: the database has upcoming events, and the model feature has no screen yet.
+- The empty state has no live screenshot because the database has upcoming events. The model feature was checked live on /organizer/events/new; Gemini answered 404, 400 and 503, so only the thinking and fallback states were seen live.

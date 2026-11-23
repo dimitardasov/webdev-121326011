@@ -74,7 +74,7 @@ One request: a signed-in member presses "Sign up" on /events.
 | Sign in (`/login`, views/login.html) | Server sends a static HTML page; nothing is fetched to draw it | It needs no data, so it appears at once; the form posts with fetch so an error such as "Wrong email or password" shows without a reload | Nothing to wait for; after pressing Sign in the button says "Signing in…" |
 | Upcoming events (`/events`, views/events.html + public/events.js) | Browser: the server sends an empty shell, then events.js fetches /api/me and /api/events and draws the list | Sign up and Cancel change the free places and the button without reloading the page (AC-23), so the list must live in the browser | "Loading events…", then the list, "There are no upcoming events yet." or "Could not load the events." with Try again. Measured: on Slow 4G with cache disabled, 5 requests, Finish 2.39 s, the data requests start only after events.js (three rounds) |
 | Event details (`/events/:id`) | Not built yet | — | — |
-| New event for organizers (`/organizer/events/new`) | Not built yet; POST /api/events and POST /api/events/suggest exist only as API | — | — |
+| New event for organizers (`/organizer/events/new`, views/new-event.html + public/new-event.js) | Browser: a static page; the script calls POST /api/events/suggest and POST /api/events | The model call is slow and may fail, so the page must show "Asking the model…" and keep the form usable without a reload | "Asking the model…", then filled fields labelled "Suggested by the model, check before saving", or "Suggestions are unavailable, fill in the form yourself" |
 
 ## Acceptance criteria
 <!-- Every criterion carries an id. A test proves it by naming that id in its title, for example
