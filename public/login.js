@@ -2,6 +2,10 @@ const form = document.getElementById('login-form');
 const message = document.getElementById('message');
 const submit = document.getElementById('submit');
 
+if (new URLSearchParams(window.location.search).get('error') === 'github') {
+  showError('Could not sign in with GitHub');
+}
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   message.hidden = true;

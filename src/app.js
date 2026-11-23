@@ -23,6 +23,7 @@ function createApp({
   suggestions = require('./services/suggestions').createSuggestionService({
     client: require('./model/gemini').createGeminiClient(),
   }),
+  github = require('./auth/github').createGitHubAuth(globalThis.fetch),
   health = healthData,
 } = {}) {
   const app = express();
@@ -64,7 +65,7 @@ function createApp({
   });
 
   app.use(pageRoutes({ auth }));
-  app.use(authRoutes({ auth }));
+  app.use(authRoutes({ auth, github }));
   app.use(eventRoutes({ auth, events, registrations }));
   app.use(suggestionRoutes({ auth, suggestions }));
 
