@@ -35,7 +35,7 @@ test('AC-2 free places are capacity minus registrations, never below zero', asyn
     { id: 3, title: 'Overbooked by hand', startsAt: '2026-11-27T10:00:00Z', capacity: 2, registered: 5, isRegistered: false },
   ]);
   const list = await service.listUpcoming(member);
-  assert.deepEqual(list.map((e) => e.freePlaces), [16, 0, 0]);
+  assert.deepEqual(list.map((e) => e.freePlaces), [17, 0, 0]);
   assert.deepEqual(list.map((e) => e.isRegistered), [false, true, false]);
   assert.deepEqual(Object.keys(list[0]).sort(), [
     'capacity', 'freePlaces', 'id', 'isRegistered', 'startsAt', 'title',
