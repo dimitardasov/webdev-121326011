@@ -37,15 +37,11 @@
 2. No rate limit on /api/login, so passwords can be guessed without any slowdown.
 3. Two screens from SPEC.md are not built: event details and New event. An organizer can create an event only through the API.
 4. The server does not handle SIGTERM: in Docker, Ctrl+C did not stop it, so on every deploy Render kills it after a timeout instead of closing database connections cleanly.
-5. Error texts for users are generic or technical: "Something went wrong. Try again." when the database is down, "Failed to fetch" when offline.
+5. The error text when the database is down is generic: "Something went wrong. Try again." does not tell the user the service is temporarily unavailable.
 6. The seed events are dated relative to the seeding day, so they turn into past events; "Build an MCP server" had already started when I tested sign-up.
 7. Coverage outside the services is uneven: routes/auth.js 78% lines, routes/suggestions.js 67%, db/migrate.js 69%, data/health.js 50%, auth/github.js 65% branches.
 8. Housekeeping: src/db/schema.sql is no longer used; the startup log says "In a codespace, open the forwarded port" in production too.
 9. The Neon password appeared in screenshots during setup; it was reset each time.
-10. Touch targets are below 44 pixels high: the Sign up button is 85.7 × 39.2 and the Sign out link 59.09 × 21.6 (DevTools inspect on the live site).
-11. When offline, Sign up shows the browser's "Failed to fetch" instead of a sentence for a person.
-12. The event cards push the page down when the list arrives; nothing reserves their space while "Loading events…" shows.
-13. Spacings and font sizes are typed numbers in public/style.css; only the colours are tokens.
 
 ## 8. Model feature
 - POST /api/events/suggest: an organizer's announcement text goes to Gemini (src/model/gemini.js) with a 5-second timeout; on a timeout, 429, network error, missing key or invalid JSON the organizer gets empty fields and "Suggestions are unavailable, fill in the form yourself". The reply is re-checked: past dates, places outside 1-500 and titles over 120 characters are dropped.
