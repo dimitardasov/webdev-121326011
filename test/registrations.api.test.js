@@ -115,7 +115,7 @@ test('AC-16 AC-3 POST registration returns 201 and creates one row', async (t) =
   assert.equal(api.registrationRows[0].eventId, upcomingEvent.id);
 });
 
-test.skip('AC-17 AC-4 POST for a full event returns 409 and creates no row', async (t) => {
+test('AC-17 AC-4 POST for a full event returns 409 and creates no row', async (t) => {
   const api = await withApi(t, {
     events: [{ ...upcomingEvent, capacity: 1 }],
     registrations: [{ userId: 3, eventId: 7 }],

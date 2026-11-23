@@ -64,7 +64,7 @@ test('AC-16 AC-3 a member signs up for an upcoming event with a free place', asy
   assert.equal(result.userId, member.id);
 });
 
-test.skip('AC-17 AC-4 a member cannot sign up for a full event', async () => {
+test('AC-17 AC-4 a member cannot sign up for a full event', async () => {
   const { service, registrations } = serviceWith({
     event: { ...upcomingEvent, capacity: 1 },
     seeded: [{ userId: 3, eventId: 7 }],
