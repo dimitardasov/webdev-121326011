@@ -85,6 +85,29 @@ test('AC-7 event creation refuses missing, past, and invalid capacity data', asy
   await assert.rejects(service.create(organizer, { title: 'High', startsAt: '2026-11-12T10:00:00Z', capacity: 501 }), { status: 400 });
 });
 
+test('event creation refuses malformed titles, dates, and fractional places', async () => {
+  const service = createEventService({
+    events: {
+      async createEvent() { assert.fail('invalid event details must not be saved'); },
+    },
+    clock: () => NOW,
+  });
+  const invalidInputs = [
+    null,
+    { title: 123, startsAt: '2026-11-12T10:00:00Z', capacity: 20 },
+    { title: 'x'.repeat(121), startsAt: '2026-11-12T10:00:00Z', capacity: 20 },
+    { title: 'Invalid date', startsAt: 'not-a-date', capacity: 20 },
+    { title: 'Fractional places', startsAt: '2026-11-12T10:00:00Z', capacity: 2.5 },
+  ];
+
+  for (const input of invalidInputs) {
+    await assert.rejects(service.create({ id: 1, role: 'organizer' }, input), {
+      status: 400,
+      message: 'Invalid event details.',
+    });
+  }
+});
+
 test('the default clock is the real time', async () => {
   let asked;
   const service = createEventService({

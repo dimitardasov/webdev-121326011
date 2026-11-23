@@ -147,3 +147,74 @@ test('AC-9 an unverified email is not used to link to an existing account', asyn
     ['link', 'github', '300', 5],
   ]);
 });
+
+test('provider sign-in refuses a missing provider or provider user id', async () => {
+  const providerAuth = createAuthService({
+    users: {
+      async findIdentity() { assert.fail('invalid provider identity must be refused first'); },
+    },
+  });
+
+  for (const profile of [
+    undefined,
+    { provider: '', providerUserId: '100' },
+    { provider: 'github', providerUserId: '' },
+  ]) {
+    await assert.rejects(providerAuth.signInWithProvider(profile), {
+      status: 400,
+      message: 'Provider identity is missing.',
+    });
+  }
+});
+
+test('provider sign-in requires a non-empty email after normalization', async () => {
+  const providerAuth = createAuthService({
+    users: {
+      async findIdentity() { return null; },
+      async findByEmail() { assert.fail('an empty normalized email must not be looked up'); },
+      async createProviderUser() { assert.fail('an empty email must not create a user'); },
+    },
+  });
+
+  for (const email of ['   ', 42]) {
+    await assert.rejects(providerAuth.signInWithProvider({
+      provider: 'github',
+      providerUserId: String(email),
+      email,
+      emailVerified: true,
+    }), {
+      status: 400,
+      message: 'A verified email is required.',
+    });
+  }
+});
+
+test('provider sign-in falls back to the email when the provider name is unusable', async () => {
+  const createdUsers = [];
+  const providerAuth = createAuthService({
+    users: {
+      async findIdentity() { return null; },
+      async findByEmail() { return null; },
+      async createProviderUser(input) {
+        createdUsers.push(input);
+        return { id: createdUsers.length, ...input, role: 'member' };
+      },
+      async linkIdentity() {},
+    },
+  });
+
+  for (const [index, name] of [undefined, '   '].entries()) {
+    await providerAuth.signInWithProvider({
+      provider: 'github',
+      providerUserId: String(index),
+      email: `member${index}@club.test`,
+      emailVerified: true,
+      name,
+    });
+  }
+
+  assert.deepEqual(createdUsers.map((user) => user.name), [
+    'member0@club.test',
+    'member1@club.test',
+  ]);
+});

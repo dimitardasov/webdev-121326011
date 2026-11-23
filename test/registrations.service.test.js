@@ -142,6 +142,17 @@ test("AC-22 a member cannot cancel another member's registration", async () => {
   assert.deepEqual(registrations, [otherRegistration]);
 });
 
+test('a visitor cannot cancel a registration', async () => {
+  const { service, calls } = serviceWith();
+
+  await assert.rejects(service.cancel(null, 7, member.id), {
+    status: 401,
+    message: 'Sign in to cancel a registration.',
+  });
+
+  assert.deepEqual(calls, []);
+});
+
 test('AC-8 only an organizer can list event registrations', async () => {
   const data = {
     async eventExists(eventId) { return String(eventId) === '7'; },
@@ -157,4 +168,50 @@ test('AC-8 only an organizer can list event registrations', async () => {
   ]);
   await assert.rejects(service.listForOrganizer(member, 7), { status: 403 });
   await assert.rejects(service.listForOrganizer(null, 7), { status: 401 });
+});
+
+test('organizer receives 404 when listing registrations for a missing event', async () => {
+  const service = createRegistrationService({
+    registrations: {
+      async eventExists() { return false; },
+      async listByEventId() { assert.fail('a missing event has no registrations to list'); },
+    },
+  });
+
+  await assert.rejects(service.listForOrganizer({ id: 1, role: 'organizer' }, 999), {
+    status: 404,
+    message: 'Event not found.',
+  });
+});
+
+test('cancellation reports a missing event or registration', async () => {
+  const missingEvent = serviceWith({ event: null }).service;
+  await assert.rejects(missingEvent.cancel(member, 999, member.id), {
+    status: 404,
+    message: 'Event not found.',
+  });
+
+  const missingRegistration = serviceWith().service;
+  await assert.rejects(missingRegistration.cancel(member, 7, member.id), {
+    status: 404,
+    message: 'Registration not found.',
+  });
+});
+
+test('registration uses the default clock when none is injected', async () => {
+  const registration = await createRegistrationService({
+    registrations: {
+      async withEventTransaction(eventId, operation) {
+        return operation({
+          event: { ...upcomingEvent, startsAt: new Date(Date.now() + 60_000) },
+          async hasRegistration() { return false; },
+          async countRegistrations() { return 0; },
+          async insertRegistration() { return { createdAt: NOW }; },
+        });
+      },
+    },
+  }).register(member, 7);
+
+  assert.equal(registration.userId, member.id);
+  assert.equal(registration.eventId, 7);
 });

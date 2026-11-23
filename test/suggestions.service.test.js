@@ -176,3 +176,47 @@ test('an unexpected client error is not hidden as a provider fallback', async ()
     message: 'unexpected service defect',
   });
 });
+
+test('missing and non-string suggestion fields are blanked', async () => {
+  const missing = serviceWith({ async suggestEvent() { return undefined; } });
+  assert.deepEqual(await missing.suggestEvent(organizer, 'announcement'), {
+    title: '',
+    startsAt: '',
+    capacity: '',
+    description: '',
+    message: '',
+  });
+
+  const invalid = serviceWith({
+    async suggestEvent() {
+      return { title: 123, startsAt: 123, capacity: 0, description: 123 };
+    },
+  });
+  assert.deepEqual(await invalid.suggestEvent(organizer, 'announcement'), {
+    title: '',
+    startsAt: '',
+    capacity: '',
+    description: '',
+    message: '',
+  });
+});
+
+test('suggestion service uses the default clock when none is injected', async () => {
+  const service = createSuggestionService({
+    client: {
+      async suggestEvent() {
+        return {
+          title: 'Future event',
+          startsAt: '2999-11-12T10:00:00Z',
+          capacity: 20,
+          description: 'Details',
+        };
+      },
+    },
+  });
+
+  const result = await service.suggestEvent(organizer, 'announcement');
+
+  assert.equal(result.title, 'Future event');
+  assert.equal(result.startsAt, '2999-11-12T10:00:00Z');
+});
