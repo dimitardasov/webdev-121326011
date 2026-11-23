@@ -26,7 +26,10 @@ function createSuggestionService({ client, clock = () => new Date() }) {
       try {
         suggestion = await client.suggestEvent(text, now);
       } catch (error) {
-        if (error instanceof ModelUnavailableError) return fallback();
+        if (error instanceof ModelUnavailableError) {
+          console.error(`model suggestion fell back: ${error.reason}`);
+          return fallback();
+        }
         throw error;
       }
 

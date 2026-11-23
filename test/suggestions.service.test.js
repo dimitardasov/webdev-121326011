@@ -112,7 +112,9 @@ test('places at the minimum and maximum supported values remain valid', async ()
   }
 });
 
-test('AC-10 a timeout returns the empty fallback suggestion', async () => {
+test('AC-10 a timeout logs only its reason and returns the empty fallback suggestion', async (t) => {
+  const logged = [];
+  t.mock.method(console, 'error', (line) => logged.push(line));
   const service = serviceWith({
     async suggestEvent() {
       throw new ModelUnavailableError('request timed out');
@@ -126,6 +128,7 @@ test('AC-10 a timeout returns the empty fallback suggestion', async () => {
     description: '',
     message: FALLBACK_MESSAGE,
   });
+  assert.deepEqual(logged, ['model suggestion fell back: request timed out']);
 });
 
 test('AC-10 a 429 rate limit returns the empty fallback suggestion', async () => {

@@ -29,6 +29,10 @@ test('Gemini client sends the configured key, model, announcement and date using
   const body = JSON.parse(request.options.body);
 
   assert.equal(result.title, 'Workshop');
+  assert.deepEqual(body.generationConfig, {
+    responseMimeType: 'application/json',
+    thinkingConfig: { thinkingBudget: 0 },
+  });
   assert.match(request.url, /test-model:generateContent$/);
   assert.equal(request.options.headers['x-goog-api-key'], 'test-key');
   assert.match(body.contents[0].parts[0].text, /A workshop next week/);
