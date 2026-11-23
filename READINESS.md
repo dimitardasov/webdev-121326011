@@ -51,6 +51,7 @@
 - POST /api/events/suggest: an organizer's announcement text goes to Gemini (src/model/gemini.js) with a 5-second timeout; on a timeout, 429, network error, missing key or invalid JSON the organizer gets empty fields and "Suggestions are unavailable, fill in the form yourself". The reply is re-checked: past dates, places outside 1-500 and titles over 120 characters are dropped.
 - On the live site GEMINI_API_KEY is not set, so it always answers with the fallback; it is not reachable from the UI yet, because the New event screen is not built.
 - How I checked: test/suggestions.service.test.js and test/gemini.client.test.js with a fake client; the service layer is at 100% coverage. I did not call the real model.
+- Price of one call, from the Gemini API pricing page (ai.google.dev/gemini-api/docs/pricing, gemini-2.5-flash paid tier, checked 2026-11-23): $0.30 per 1M input tokens and $2.50 per 1M output tokens, thinking included. One suggestion sends about 500 input tokens (instructions plus the announcement) and gets about 200 output tokens back, so about $0.00015 + $0.0005 = $0.00065 per call, about $0.65 per 1,000 calls. On the free tier it costs nothing but is rate-limited, which the fallback covers.
 
 ## 9. MCP
 - mcp-server/server.js offers list_upcoming_events, register_for_event and cancel_registration, each through the same services as the HTTP API; it signs in with MCP_EMAIL and MCP_PASSWORD and may do only what that user may do.
