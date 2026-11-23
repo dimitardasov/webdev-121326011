@@ -61,8 +61,7 @@ A screen that only handles "it worked" is a screen that lies to the user on the 
     - what I decided and why: no dark mode in this version. The app has two light screens and the gaps above (touch targets, error texts, missing screens) matter more to users than a second theme.
 
 ## Evidence
-
-<!-- Screenshots of at least the four states of one screen, and of the model feature
-     thinking and failing. A link to them is enough; they do not have to be in the repo. -->
+![the list, content state](ui/content.png)
+![offline Sign up, error state](ui/error.png)
 - Loading, content and error on /events were checked live with DevTools (Slow 4G and Offline); screenshots in docs/ui/.
 - The empty state and the model feature have no live screenshot: the database has upcoming events, and the model feature has no screen yet.
