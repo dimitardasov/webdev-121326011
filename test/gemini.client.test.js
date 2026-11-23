@@ -31,7 +31,6 @@ test('Gemini client sends the configured key, model, announcement and date using
   assert.equal(result.title, 'Workshop');
   assert.deepEqual(body.generationConfig, {
     responseMimeType: 'application/json',
-    thinkingConfig: { thinkingBudget: 0 },
   });
   assert.match(request.url, /test-model:generateContent$/);
   assert.equal(request.options.headers['x-goog-api-key'], 'test-key');
@@ -104,12 +103,15 @@ test('Gemini client converts timeout and network errors into ModelUnavailableErr
   });
 });
 
-test('Gemini client converts non-2xx responses into ModelUnavailableError', async (t) => {
-  for (const [status, reason] of [[429, 'rate limited'], [503, 'provider returned HTTP 503']]) {
+test('Gemini client includes provider error messages for 4xx responses', async (t) => {
+  for (const [status, payload, reason] of [
+    [429, { error: { message: 'Quota exceeded.' } }, 'rate limited: Quota exceeded.'],
+    [503, { error: { message: 'Unavailable.' } }, 'provider returned HTTP 503'],
+  ]) {
     await t.test(String(status), async () => {
       const client = createGeminiClient({
         apiKey: 'test-key',
-        fetchImpl: async () => response({}, { ok: false, status }),
+        fetchImpl: async () => response(payload, { ok: false, status }),
       });
 
       await assert.rejects(
@@ -118,6 +120,34 @@ test('Gemini client converts non-2xx responses into ModelUnavailableError', asyn
       );
     });
   }
+});
+
+test('Gemini client truncates and redacts 4xx provider error messages', async () => {
+  const announcement = 'private announcement';
+  const providerMessage =
+    `Invalid key test-key; announcement: ${announcement}; ${'x'.repeat(220)}\nextra line`;
+  const client = createGeminiClient({
+    apiKey: 'test-key',
+    fetchImpl: async () => response(
+      { error: { message: providerMessage } },
+      { ok: false, status: 400 },
+    ),
+  });
+
+  await assert.rejects(
+    client.suggestEvent(announcement, new Date('2026-11-05T10:00:00Z')),
+    (error) => {
+      const expectedDetails = providerMessage.slice(0, 200)
+        .replaceAll('test-key', '[redacted]')
+        .replaceAll(announcement, '[redacted]')
+        .replace(/[\r\n]+/g, ' ');
+      assert.equal(error.reason, `provider returned HTTP 400: ${expectedDetails}`);
+      assert.ok(!error.reason.includes('test-key'));
+      assert.ok(!error.reason.includes(announcement));
+      assert.ok(!error.reason.includes('\n'));
+      return error instanceof ModelUnavailableError;
+    },
+  );
 });
 
 test('Gemini client rejects invalid provider and generated JSON', async (t) => {

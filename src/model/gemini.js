@@ -38,10 +38,7 @@ function createGeminiClient({
             },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: {
-                responseMimeType: 'application/json',
-                thinkingConfig: { thinkingBudget: 0 },
-              },
+              generationConfig: { responseMimeType: 'application/json' },
             }),
             signal: AbortSignal.timeout(5000),
           },
@@ -54,10 +51,25 @@ function createGeminiClient({
       }
 
       if (!response.ok) {
-        const reason = response.status === 429
+        let providerMessage = '';
+        if (response.status >= 400 && response.status < 500) {
+          try {
+            const errorBody = await response.json();
+            if (typeof errorBody?.error?.message === 'string') {
+              providerMessage = errorBody.error.message.slice(0, 200);
+              for (const sensitive of [apiKey, prompt, String(text ?? '')]) {
+                if (sensitive) providerMessage = providerMessage.replaceAll(sensitive, '[redacted]');
+              }
+              providerMessage = providerMessage.replace(/[\r\n]+/g, ' ');
+            }
+          } catch {}
+        }
+        const baseReason = response.status === 429
           ? 'rate limited'
           : `provider returned HTTP ${response.status}`;
-        throw new ModelUnavailableError(reason);
+        throw new ModelUnavailableError(
+          providerMessage ? `${baseReason}: ${providerMessage}` : baseReason,
+        );
       }
 
       let envelope;
