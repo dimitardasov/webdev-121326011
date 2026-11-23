@@ -56,18 +56,26 @@ test('AC-7 an organizer creates a valid event and members cannot create one', as
 
   const result = await service.create(organizer, {
     title: 'REST workshop',
+    description: 'Bring a laptop.',
     startsAt: '2026-11-12T10:00:00Z',
     capacity: 20,
   });
 
   assert.equal(result.id, 8);
   assert.equal(created.length, 1);
+  assert.equal(created[0].description, 'Bring a laptop.');
   assert.equal(created[0].capacity, 20);
+  await service.create(organizer, {
+    title: 'Workshop without details',
+    startsAt: '2026-11-12T10:00:00Z',
+    capacity: 20,
+  });
+  assert.equal(created[1].description, '');
   await assert.rejects(
     service.create(member, { title: 'REST workshop', startsAt: '2026-11-12T10:00:00Z', capacity: 20 }),
     { status: 403 },
   );
-  assert.equal(created.length, 1);
+  assert.equal(created.length, 2);
 });
 
 test('AC-7 event creation refuses missing, past, and invalid capacity data', async () => {

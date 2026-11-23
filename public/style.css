@@ -34,12 +34,16 @@ h2 { margin: 0; font-size: var(--text-lg); }
   display: flex; justify-content: space-between; align-items: center; gap: var(--space-4);
   padding: var(--space-3) var(--space-4); background: #fff; border-bottom: 1px solid var(--line);
 }
+.bar-actions { display: flex; align-items: center; gap: var(--space-3); }
+.action-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-2); color: var(--accent); }
 
 form { display: grid; gap: var(--space-1); }
 label { font-weight: 600; margin-top: var(--space-2); }
-input { font: inherit; padding: var(--space-2); border: 1px solid var(--line); border-radius: 6px; }
+input, textarea { box-sizing: border-box; width: 100%; font: inherit; padding: var(--space-2); border: 1px solid var(--line); border-radius: 6px; }
+input { min-height: 44px; }
+textarea { resize: vertical; }
 button {
-  font: inherit; min-height: 44px; padding: var(--space-2) var(--space-4); margin-top: var(--space-3); border: 0; border-radius: 6px;
+  box-sizing: border-box; font: inherit; min-height: 44px; padding: var(--space-2) var(--space-4); margin-top: var(--space-3); border: 0; border-radius: 6px;
   background: var(--accent); color: #fff; cursor: pointer;
 }
 button:disabled { opacity: 0.6; cursor: default; }
@@ -49,3 +53,8 @@ button.link { background: none; color: var(--accent); padding: var(--space-2); m
 .events { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-3); }
 .events li { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: var(--space-3) var(--space-4); }
 .events p { margin: var(--space-1) 0 0; }
+.event-form { margin-top: var(--space-4); }
+.event-form textarea { min-height: 8rem; }
+.suggested-label { color: var(--accent); font-size: var(--text-sm); font-weight: 400; }
+.model-progress { margin: var(--space-2) 0; }
+.status-message { margin: var(--space-4) 0; }

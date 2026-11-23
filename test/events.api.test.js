@@ -41,7 +41,13 @@ function createHarness() {
     },
     async createEvent(input) {
       const id = Math.max(...eventRows.keys()) + 1;
-      const event = { id, title: input.title, startsAt: input.startsAt, capacity: input.capacity };
+      const event = {
+        id,
+        title: input.title,
+        description: input.description,
+        startsAt: input.startsAt,
+        capacity: input.capacity,
+      };
       eventRows.set(id, { ...event, registered: 0 });
       return event;
     },
@@ -118,12 +124,15 @@ test('AC-7 POST /api/events creates for organizer and refuses member or visitor'
     },
     body: JSON.stringify({
       title: 'REST workshop',
+      description: 'Bring a laptop.',
       startsAt: '2026-11-12T10:00:00Z',
       capacity: 20,
     }),
   });
   assert.equal(created.status, 201);
-  assert.equal((await created.json()).event.capacity, 20);
+  const createdBody = await created.json();
+  assert.equal(createdBody.event.capacity, 20);
+  assert.equal(createdBody.event.description, 'Bring a laptop.');
 
   const memberCookie = await signedInCookie(api.baseUrl, member.email);
   const memberCreate = await fetch(`${api.baseUrl}/api/events`, {
@@ -150,6 +159,27 @@ test('AC-7 POST /api/events creates for organizer and refuses member or visitor'
     }),
   });
   assert.equal(visitorCreate.status, 401);
+});
+
+test('organizer event page returns 403 to members and 200 to organizers', async (t) => {
+  const api = await withApi(t);
+  const visitorResponse = await fetch(`${api.baseUrl}/organizer/events/new`, { redirect: 'manual' });
+  assert.equal(visitorResponse.status, 302);
+  assert.equal(visitorResponse.headers.get('location'), '/login');
+
+  const memberCookie = await signedInCookie(api.baseUrl, member.email);
+  const memberResponse = await fetch(`${api.baseUrl}/organizer/events/new`, {
+    headers: { cookie: memberCookie },
+  });
+  assert.equal(memberResponse.status, 403);
+  assert.match(await memberResponse.text(), /Only organizers can create events\./);
+
+  const organizerCookie = await signedInCookie(api.baseUrl, organizer.email);
+  const organizerResponse = await fetch(`${api.baseUrl}/organizer/events/new`, {
+    headers: { cookie: organizerCookie },
+  });
+  assert.equal(organizerResponse.status, 200);
+  assert.match(await organizerResponse.text(), /Paste the announcement/);
 });
 
 test('AC-7 POST /api/events rejects invalid title, date, and capacity', async (t) => {

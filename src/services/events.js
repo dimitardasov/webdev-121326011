@@ -25,6 +25,7 @@ function createEventService({ events, clock = () => new Date() }) {
       const title = typeof input?.title === 'string' ? input.title.trim() : '';
       const startsAt = new Date(input?.startsAt);
       const capacity = Number(input?.capacity);
+      const description = typeof input?.description === 'string' ? input.description : '';
 
       if (!title || title.length > 120
         || Number.isNaN(startsAt.getTime())
@@ -37,6 +38,7 @@ function createEventService({ events, clock = () => new Date() }) {
 
       return events.createEvent({
         title,
+        description,
         startsAt,
         capacity,
         createdBy: user.id,

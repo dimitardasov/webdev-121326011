@@ -22,20 +22,21 @@ async function listStartingAfter(since, userId) {
   }));
 }
 
-async function createEvent({ title, startsAt, capacity, createdBy }) {
+async function createEvent({ title, description, startsAt, capacity, createdBy }) {
   const { rows } = await pool.query(
-    `INSERT INTO events (club_id, title, starts_at, capacity, created_by)
-     SELECT id, $1, $2, $3, $4
+    `INSERT INTO events (club_id, title, description, starts_at, capacity, created_by)
+     SELECT id, $1, $2, $3, $4, $5
        FROM clubs
       WHERE name = 'Informatics Club'
-     RETURNING id, title, starts_at, capacity, created_by`,
-    [title, startsAt, capacity, createdBy],
+     RETURNING id, title, description, starts_at, capacity, created_by`,
+    [title, description, startsAt, capacity, createdBy],
   );
   const row = rows[0];
   if (!row) throw new Error('Informatics Club not found.');
   return {
     id: row.id,
     title: row.title,
+    description: row.description,
     startsAt: row.starts_at,
     capacity: row.capacity,
     createdBy: row.created_by,

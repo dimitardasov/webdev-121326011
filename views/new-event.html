@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New event · Club Events</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="bar">
+    <strong>Club Events</strong>
+    <a class="action-link" href="/events">Back to events</a>
+  </header>
+  <main>
+    <h1>New event</h1>
+
+    <label for="announcement">Paste the announcement</label>
+    <textarea id="announcement" rows="4"></textarea>
+    <button id="suggest" type="button">Suggest details</button>
+    <p id="model-progress" class="model-progress muted" aria-live="polite" hidden>This can take a few seconds.</p>
+
+    <p id="form-message" class="status-message" role="alert" hidden></p>
+    <p id="create-success" class="status-message" role="status" hidden>
+      <span id="create-success-message"></span> <a href="/events">Back to events</a>
+    </p>
+
+    <form id="event-form" class="event-form">
+      <label for="title">Title <span id="suggested-title" class="suggested-label" hidden>Suggested by the model, check before saving</span></label>
+      <input id="title" name="title" type="text" maxlength="120" required>
+
+      <label for="startsAt">Start date and time <span id="suggested-startsAt" class="suggested-label" hidden>Suggested by the model, check before saving</span></label>
+      <input id="startsAt" name="startsAt" type="datetime-local" required>
+
+      <label for="capacity">Number of places <span id="suggested-capacity" class="suggested-label" hidden>Suggested by the model, check before saving</span></label>
+      <input id="capacity" name="capacity" type="number" min="1" max="500" step="1" required>
+
+      <label for="description">Description <span id="suggested-description" class="suggested-label" hidden>Suggested by the model, check before saving</span></label>
+      <textarea id="description" name="description" rows="4"></textarea>
+
+      <button id="create" type="submit">Create event</button>
+    </form>
+  </main>
+  <script src="/assets/new-event.js"></script>
+</body>
+</html>

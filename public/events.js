@@ -88,6 +88,7 @@ if (typeof document !== 'undefined') {
       const { user } = await meResponse.json();
       currentUserId = user.id;
       document.getElementById('who').textContent = `${user.name} (${user.role})`;
+      document.getElementById('new-event').hidden = user.role !== 'organizer';
 
       const response = await fetchWithConnectionMessage('/api/events');
       if (response.status === 401) {
