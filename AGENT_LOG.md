@@ -75,3 +75,9 @@ One entry per agent session, newest at the bottom. Be honest: what went wrong is
 - Step 9: on the live site, signed in with GitHub, I signed up for "Intro to Git" (19 of 20 places free). Then Manual Deploy → Deploy latest commit (3c6bfd2) restarted the container; after a reload the registration was still there, 19 of 20 and a Cancel button. The data lives in Neon, not in the container.
 - Step 10, bad deploy: changed the events page title (871a62d) and let it go live, then Rollback in Render to b688959. The old title was back after about 10-11 seconds. I reverted the commit in git so the next deploy does not bring it back, and checked Auto-Deploy afterwards.
  The rollback had switched Auto-Deploy off; I set it back to After CI Checks Pass.
+ - Step 10, broken on purpose:
+  - Database down: the container with a wrong DATABASE_URL answered /health with 503 {"status":"error","db":"down"}; the details (ECONNREFUSED 127.0.0.1:5999) were only in the log; sign-in showed "Something went wrong. Try again."
+  - Bad input on the live site: broken JSON to POST /api/events/1/registrations gave 400 "The request body is not valid JSON."; a valid body without a session gave 401 "Sign in to sign up for events.". No 500 and no stack trace.
+  - Four states on /events: loading ("Loading events…", under a second on Slow 4G), content, error (offline Sign up showed "Failed to fetch" and changed nothing); the empty state appears only when there are no upcoming events.
+  - Waterfall with cache disabled, Slow 4G: 5 requests, 4.2 kB, Finish 2.39 s, DOMContentLoaded 1.22 s. Three rounds in a row: the page, then style.css and events.js, then /api/me and /api/events.
+  - Security: signed in as member@club.test (id 2) and tried DELETE /api/events/1/registrations/3 on my own registration (id 3): refused with "You can only cancel your own registration."; my registration stayed.
