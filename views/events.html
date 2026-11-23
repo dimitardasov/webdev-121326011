@@ -16,13 +16,15 @@
     <h1>Upcoming events</h1>
 
     <!-- Four states: exactly one of these is visible at a time. -->
-    <p id="loading" class="muted">Loading events…</p>
-    <p id="empty" class="muted" hidden>There are no upcoming events yet.</p>
-    <div id="error" class="error" role="alert" hidden>
-      <p>Could not load the events.</p>
-      <button id="retry" type="button">Try again</button>
+    <div class="events-area">
+      <p id="loading" class="muted">Loading events…</p>
+      <p id="empty" class="muted" hidden>There are no upcoming events yet. Check back soon: organizers add new events here.</p>
+      <div id="error" class="error" role="alert" hidden>
+        <p id="error-message">Could not load the events.</p>
+        <button id="retry" type="button">Try again</button>
+      </div>
+      <ul id="list" class="events" hidden></ul>
     </div>
-    <ul id="list" class="events" hidden></ul>
   </main>
 
   <template id="event-row">

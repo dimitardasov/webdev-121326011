@@ -1,6 +1,16 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { registrationUpdate } = require('../public/events');
+const { registrationUpdate, fetchWithConnectionMessage } = require('../public/events');
+
+test('network failures show a message people can understand', async (context) => {
+  context.mock.method(global, 'fetch', async () => {
+    throw new TypeError('Failed to fetch');
+  });
+
+  await assert.rejects(fetchWithConnectionMessage('/api/events'), {
+    message: 'No connection. Check your internet and try again.',
+  });
+});
 
 test('AC-23 a successful sign-up decrements free places and changes the button to Cancel', () => {
   assert.deepEqual(

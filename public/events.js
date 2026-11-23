@@ -1,3 +1,13 @@
+const noConnectionMessage = 'No connection. Check your internet and try again.';
+
+async function fetchWithConnectionMessage(url, options) {
+  try {
+    return await fetch(url, options);
+  } catch {
+    throw new Error(noConnectionMessage);
+  }
+}
+
 function registrationUpdate(event, apiResult) {
   if (apiResult.status !== 201 && apiResult.status !== 204) {
     throw new TypeError('Registration update requires a successful API response.');
@@ -14,7 +24,7 @@ function registrationUpdate(event, apiResult) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { registrationUpdate };
+  module.exports = { registrationUpdate, fetchWithConnectionMessage };
 }
 
 if (typeof document !== 'undefined') {
@@ -44,7 +54,7 @@ if (typeof document !== 'undefined') {
     button.disabled = true;
 
     try {
-      const response = await fetch(
+      const response = await fetchWithConnectionMessage(
         `/api/events/${event.id}/registrations${event.isRegistered ? `/${currentUserId}` : ''}`,
         { method: event.isRegistered ? 'DELETE' : 'POST' },
       );
@@ -69,7 +79,7 @@ if (typeof document !== 'undefined') {
   async function loadEvents() {
     show('loading');
     try {
-      const meResponse = await fetch('/api/me');
+      const meResponse = await fetchWithConnectionMessage('/api/me');
       if (meResponse.status === 401) {
         window.location.assign('/login');
         return;
@@ -79,7 +89,7 @@ if (typeof document !== 'undefined') {
       currentUserId = user.id;
       document.getElementById('who').textContent = `${user.name} (${user.role})`;
 
-      const response = await fetch('/api/events');
+      const response = await fetchWithConnectionMessage('/api/events');
       if (response.status === 401) {
         window.location.assign('/login');
         return;
@@ -104,7 +114,9 @@ if (typeof document !== 'undefined') {
         }),
       );
       show('list');
-    } catch {
+    } catch (requestError) {
+      document.getElementById('error-message').textContent =
+        requestError.message === noConnectionMessage ? noConnectionMessage : 'Could not load the events.';
       show('error');
     }
   }

@@ -1,6 +1,7 @@
 const form = document.getElementById('login-form');
 const message = document.getElementById('message');
 const submit = document.getElementById('submit');
+const noConnectionMessage = 'No connection. Check your internet and try again.';
 
 if (new URLSearchParams(window.location.search).get('error') === 'github') {
   showError('Could not sign in with GitHub');
@@ -25,7 +26,7 @@ form.addEventListener('submit', async (event) => {
     const body = await response.json().catch(() => ({}));
     showError(body.error || 'Could not sign in. Try again.');
   } catch {
-    showError('No connection to the server. Try again.');
+    showError(noConnectionMessage);
   }
 });
 
