@@ -48,12 +48,12 @@ A screen that only handles "it worked" is a screen that lies to the user on the 
 
 ## The model feature
 
-- [ ] **It shows that it is thinking.** A model call is slow and a free service may have been asleep; a frozen button is the worst possible answer.
-    - how I checked: there is no screen for it yet: the New event screen is not built, so POST /api/events/suggest has no UI.
-- [ ] **It shows when it failed,** and the rest of the screen still works.
-    - how I checked: the service returns "Suggestions are unavailable, fill in the form yourself" (tests in test/suggestions.service.test.js), but no screen shows it yet.
-- [ ] **The user can tell the model's suggestion from a fact.** It is labelled as a suggestion, not presented as data the app knows.
-    - how I checked: no screen yet; not done.
+- [x] **It shows that it is thinking.** A model call is slow and a free service may have been asleep; a frozen button is the worst possible answer.
+        - how I checked: on the live site as an organizer, Suggest details disables the button and shows "Asking the model…" and "This can take a few seconds." while the request runs.
+- [x] **It shows when it failed,** and the rest of the screen still works.
+       - how I checked: on the live site the provider answered 404 (old model name), 400 (thinkingConfig) and 503 (overloaded); each time the page showed "Suggestions are unavailable, fill in the form yourself" and I still created the event by hand. The reason is in Render's log ("model suggestion fell back: …").
+- [x] **The user can tell the model's suggestion from a fact.** It is labelled as a suggestion, not presented as data the app knows.
+        - how I checked: fields filled from a model answer get the label "Suggested by the model, check before saving" and nothing is saved until Create event (test in test/events.ui.test.js). Not seen live: Gemini answered 503 during my checks.
 
 ## Decisions
 
